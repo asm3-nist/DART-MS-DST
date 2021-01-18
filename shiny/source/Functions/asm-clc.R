@@ -1,0 +1,4 @@
+clc <- function(){
+  cat("\f")
+  
+}

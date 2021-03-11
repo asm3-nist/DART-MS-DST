@@ -1,5 +1,6 @@
-dev_mode = 1  # set to 1 to see extended scoring break down and other notes
+dev_mode = 0  # set to 1 to see extended scoring break down and other notes
 lb_mode  = 0  # future work: add "library builder" right into program as a third tab rather than have as separate script
+query_file_types = c(".txt",".jsp",".csv");
 
 # load custom written functions
 source("source/Functions/asm-spec2dt.R")

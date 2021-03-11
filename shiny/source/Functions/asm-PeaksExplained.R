@@ -30,10 +30,9 @@ asm_PeaksExplained <- function(ref,query,tau_ma,prot_mol){
   
   
   # check if protonated molecule is in query spectrum
+  flag = 0;
   if(min(abs(as.numeric(y[,1][[1]])-prot_mol)) <= tau_ma){
     flag = 1; # protonated molecule is in query spectrum
-  } else {
-    flag = 0; # protonated molecule is not in query spectrum
   }
   
   results = c(PE_perc,MD_bias,flag,(nMatchedPeaks/n),nMatchedPeaks,n)

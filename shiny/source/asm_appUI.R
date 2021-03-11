@@ -1,5 +1,5 @@
 source('source/GUI/asm_GUI_DBV.R')   # Database Viewer
-source('source/GUI/asm_GUI_DST.R')   # Pure Compound Search
+source('source/GUI/asm_GUI_DST.R')   # Database Search
  
 
 appUI <- shinyUI({

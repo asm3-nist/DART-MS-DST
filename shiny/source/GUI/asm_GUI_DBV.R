@@ -10,7 +10,7 @@ asm_GUI_DBV <- tabPanel(
        div(selectInput("RefLibSelect","Reference Library: ",choices=Libraries)),
        div(DT::dataTableOutput("Library"), style = "font-size:70%"),
        div(strong(p("References")),
-           p("Sisco et. al. (submitted). Creation and Release of an Updated NIST DART-MS Forensics Database."),
+           p("Sisco et. al. (accepted). Creation and Release of an Updated NIST DART-MS Forensics Database."),
               style="color:black;font-size:8pt")
    ),
 

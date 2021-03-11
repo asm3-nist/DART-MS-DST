@@ -28,26 +28,26 @@ asm_GUI_DST <- tabPanel(
 
       tabPanel("Query Spectra",
         br(),
-        div(p("Select centroided mass spectrum (txt file) measured
-              at each collision energy."),
+        div(p("Select centroided mass spectrum (txt, jsp, csv) measured
+              at each fragmentation level."),
               style="color:black;font-size:10pt"),
 
                   fileInput("q30", "",
                             multiple = FALSE,
                             placeholder = "30 V Query Spectrum",
-                            accept = c(".txt")
+                            accept = query_file_types
                             ),
                   div(style="margin-top:-25px"),
                   fileInput("q60", "",
                             multiple = FALSE,
                             placeholder = "60 V Query Spectrum",
-                            accept = c(".txt")
+                            accept = query_file_types
                             ),
                   div(style="margin-top:-25px"),
                   fileInput("q90", "",
                             multiple = FALSE,
                             placeholder = "90 V Query Spectrum",
-                            accept = c(".txt")
+                            accept = query_file_types
                             ),
 
          br(),
@@ -58,7 +58,7 @@ asm_GUI_DST <- tabPanel(
          br(),
          br(),
          div(strong(p("References")),
-            p("Moorthy & Sisco. (In Prep.). A new inverted library-search algorithm for mixture analysis using DART-MS."),
+            p("Moorthy & Sisco. (In Prep.). A new library-search algorithm for mixture analysis using DART-MS."),
                style="color:black;font-size:8pt")
 
       ),
@@ -98,7 +98,9 @@ asm_GUI_DST <- tabPanel(
    ),
 
    mainPanel(
-     plotOutput("QCollapsedSpectrum",width="100%"),
+     uiOutput("QueryPlotsUI"),      
+     plotlyOutput("QueryPlots",height="350px"),
+     br(),br(),
      uiOutput("targets")
    )
 )

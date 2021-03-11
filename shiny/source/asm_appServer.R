@@ -236,11 +236,14 @@ rv <- reactiveValues()
     
     # https://felixfan.github.io/ggplot2-remove-grid-background-margin/      
     p <- ggplot(bpn_data,
-                aes(x=mz, ymax=ab, ymin = 0, text=paste0("mz: ",mz,"\nab: ",round(ab,3), "\n\nPossible Structure(s):\n", annotations))) +
-      geom_linerange(color=col) +
-      theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-      panel.background = element_blank(), axis.line = element_line(colour = "black"))  
-    ggplotly(p,tooltip='text')
+                aes(x=mz, ymax=ab, ymin = 0, text=paste0("m/z: ",round(mz,4),"\nrel. int.: ",round(ab,3), "\n\nPossible Structure(s):\n", annotations))) 
+    p <- p + geom_linerange(color=col) 
+    p <- p + labs(title="",x="m/z",y="Relative Intensity, %")
+    p <- p + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+                   panel.background = element_blank(), axis.line = element_line(colour = "black"),
+                   axis.title.y = element_text(size = 10),axis.title.x = element_text(size=10))  
+    
+    ggplotly(p,tooltip=c('text'))
   })
 
   output$LibraryPlotsUI <- renderUI({
@@ -380,6 +383,7 @@ rv <- reactiveValues()
    rv$bpN_Query3 <- NULL
    rv$targets_mz <- NULL
    rv$targets_in <- NULL
+   rv$QuerySelected <- "+30 V";
 
    rv$targets_all_data = NULL;  # for reporting
    rv$report = NULL;            # for reporting
@@ -511,8 +515,9 @@ rv <- reactiveValues()
                     RefPeakList = asm_spec2dt_ref(RefLibrary[s2[j],PeakLists][[1]][m],max_mz_consider);  # collect peaks up to a max mz value to avoid computations on noise 
                     
                     if(input$lowres==TRUE){
+                      Query = asm_hiRes2lowRes(Query)
                       RefPeakList = asm_hiRes2lowRes(RefPeakList)
-                      epsilon_1 = 0;
+                      epsilon_1 = 1e-8;
                     } else {
                       epsilon_1 = epsilon_0;
                     }
@@ -655,42 +660,81 @@ rv <- reactiveValues()
     return(1)
 })
 
-  output$QCollapsedSpectrum <- renderPlot({
+  output$QueryPlots <- renderPlotly({
     trigger_button()
     
-    bpN_Query1 = rv$bpN_Query1;
-    targets = rv$targets_mz;
-    target_min_ab = rv$target_min_ab;
-
-    ymax = 100
-    plot(bpN_Query1[,mz],bpN_Query1[,ab],
-         ylim=c(0,ymax),
-         type="h",
-         xlab="m/z",
-         ylab="Relative Intensity, %",
-         main="Query Mass Spectra")
-    
-    
-    multiplot = FALSE
-    if(multiplot){
-      bpN_Query2 = rv$bpN_Query2;
-      matplot(bpN_Query2[,mz],bpN_Query2[,ab],type="h",col="green",add=TRUE)
-      bpN_Query3 = rv$bpN_Query3;
-      matplot(bpN_Query3[,mz],bpN_Query3[,ab],type="h",col="red",add=TRUE)
-      matplot(targets[[1]],rep(ymax,length(targets[[1]])),pch=25,col="blue",bg="blue",add=TRUE)
-      abline(h=(ymax*target_min_ab),lty=2,col="purple")
-      legend("right",pch=c(19,19,19),legend=c("+30 V","+60 V","+90 V"),col=c("black","green","red"),bty="n")
-    } else {
-      matplot(targets[[1]],rep(ymax,length(targets[[1]])),pch=25,col="blue",bg="blue",add=TRUE)
-      abline(h=(ymax*target_min_ab),lty=2,col="purple")
+    if(rv$QuerySelected == "+30 V"){
+      bpn_data = rv$bpN_Query1;  
+    } else if (rv$QuerySelected == "+60 V"){
+      bpn_data = rv$bpN_Query2;
+    } else if (rv$QuerySelected == "+90 V"){
+      bpn_data = rv$bpN_Query3;
     }
     
     
- 
+    targets = rv$targets_mz;
+    target_min_ab = rv$target_min_ab;
     
     
+    l = dim(bpn_data)[1];
+    col = rep("black",l);
+    annotations = rep("",l);
+    
+    for(i in 1:length(targets[[1]])){
+      j = which.min(abs(bpn_data[,mz]-targets[[1]][i]))
+      if((abs(bpn_data[j,mz]-targets[[1]][i]) <= rv$mz_tol)){
+        if(rv$QuerySelected == "+30 V"){
+          col[j] = "red";
+          annotations[j] = paste0("Target ",rv$target_type, "\n");
+        } else {
+          col[j] = "orange";
+          annotations[j] = paste0("Target ",rv$target_type, " within error tolerance\n");
+        }
+        
+      }
+    }
+        
+    bpn_data = cbind(bpn_data,annotations);
+    p <- ggplot(bpn_data,
+                  aes(x=mz, y=ab, ymax=ab, ymin=0, text=paste0(annotations,"m/z: ",round(mz,4),"\nrel. int.: ",round(ab,3))))
+    p <- p + geom_linerange(color = col);
+    p <- p + labs(title="",x="m/z",y="Relative Intensity, %")
+    p <- p + theme(panel.grid.major = element_blank(),panel.grid.minor = element_blank(),
+                   panel.background = element_blank(),axis.line = element_line(color="black"),
+                   axis.title.y = element_text(size = 10),axis.title.x = element_text(size=10))
+  
+    
+  if(rv$search_type=="ma"){  
+    if(rv$QuerySelected == "+30 V"){
+        p <- p + geom_hline(yintercept=99.9*target_min_ab,linetype="dotted",size=0.25,color="purple")
+    }
+  }
+  ggplotly(p,tooltip=c('text'))
 
   })
+  
+  output$QueryPlotsUI <- renderUI({
+    
+    trigger_button();
+          
+    QueryType = c("+30 V", "+60 V", "+90 V")
+    NumSpectra = length(QueryType);
+
+      do.call(tabsetPanel, c(id='plottabQ',lapply(1:NumSpectra, function(i) {
+          tabPanel(title=QueryType[i])
+        
+      })))
+
+  })
+  
+  observeEvent(input$plottabQ, {
+
+    k = input$plottabQ
+    rv$QuerySelected <- k;
+
+    })
+
+
 
   output$rough_out <- renderText({
     trigger_button()

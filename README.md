@@ -27,7 +27,7 @@ Enter the following command:
 
 > source('RunShinyApp.R')
 
-All necessary external R packages should be installed on the 
+All necessary external R packages will be automatically installed on the 
 first run of the application. 
 
 

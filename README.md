@@ -28,7 +28,9 @@ Enter the following command:
 > source('RunShinyApp.R')
 
 All necessary external R packages will be automatically installed on the 
-first run of the application. 
+first run of the application. For details about which external packages 
+have been used, see the source file “asm_externalPackages.R” in 
+the "shiny/source/" directory.
 
 
 For help or more information, contact: DARTdata@nist.gov
